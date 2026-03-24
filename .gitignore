@@ -1,0 +1,8 @@
+*.rar
+*.crt
+*.key
+*.csr
+*.ca
+*.pem
+*.p12
+*.pfx
