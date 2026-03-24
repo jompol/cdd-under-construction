@@ -1,0 +1,16 @@
+services:
+  cdd-under-construction:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cdd-dashboard-web
+    ports:
+      - "4004:80"
+    restart: unless-stopped
+    networks:
+      - cdd-network
+
+networks:
+  cdd-network:
+    name: cdd-network
+    external: true
