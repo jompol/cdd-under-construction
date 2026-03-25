@@ -3,9 +3,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: cdd-dashboard-web
+    container_name: cdd-under-construction
     ports:
       - "4004:80"
+      - "4005:81"
     restart: unless-stopped
     networks:
       - cdd-network

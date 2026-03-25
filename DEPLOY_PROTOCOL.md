@@ -7,19 +7,22 @@
 | **Production Server (SSH)** | `ssh root@10.10.8.151` (private IP) |
 | **Production Public IP** | `172.16.160.17` |
 | **Web URL** | `http://172.16.160.17:4004` |
-| **Port** | 4004 |
-| **Container Name** | `cdd-dashboard-web` |
+| **Admin URL** | `http://172.16.160.17:4005` |
+| **Web Port** | 4004 |
+| **Admin Port** | 4005 |
+| **Container Name** | `cdd-under-construction` |
 | **Network** | `cdd-network` (external) |
 
 ## ไฟล์ในโปรเจกต์
 
 | ไฟล์ | คำอธิบาย |
 |------|----------|
-| `index.html` | หน้า Under Construction (HTML/CSS/JS ในไฟล์เดียว) |
+| `index.html` | หน้า Under Construction สำหรับ Web Dashboard (สีน้ำเงิน) |
+| `admin.html` | หน้า Under Construction สำหรับ Admin Dashboard (สีม่วง) |
 | `favicon.svg` | Favicon |
-| `nginx.conf` | Nginx config (port 4004, no-cache) |
+| `nginx.conf` | Nginx config — port 80 (web), port 81 (admin) |
 | `Dockerfile` | nginx:alpine + static files |
-| `docker-compose.yml` | container config + cdd-network |
+| `docker-compose.yml` | container config: 4004->80, 4005->81 |
 | `deploy.sh` | Script build & run บน server |
 | `deploy-production.sh` | Script deploy จาก local ไป production |
 
@@ -39,7 +42,7 @@ cd /Users/chalermpol/repo/cdd-dashboard/cdd-under-construction
 ```bash
 ssh root@10.10.8.151 "mkdir -p /root/cdd-under-construction"
 
-scp index.html favicon.svg nginx.conf Dockerfile docker-compose.yml deploy.sh \
+scp index.html admin.html favicon.svg nginx.conf Dockerfile docker-compose.yml deploy.sh \
   root@10.10.8.151:/root/cdd-under-construction/
 ```
 
@@ -55,8 +58,9 @@ chmod +x deploy.sh
 **ขั้นตอนที่ 3:** ตรวจสอบ
 
 ```bash
-docker ps | grep cdd-dashboard-web
-curl http://localhost:4004
+docker ps | grep cdd-under-construction
+curl http://localhost:4004   # Web
+curl http://localhost:4005   # Admin
 ```
 
 ## Nginx Reverse Proxy (Host)
@@ -64,9 +68,9 @@ curl http://localhost:4004
 Production server มี nginx host ทำ reverse proxy:
 
 - Config: `/etc/nginx/sites-enabled/smartbmndashboard`
-- HTTP :80 → redirect HTTPS
-- HTTPS :443 → `proxy_pass http://127.0.0.1:4004` (frontend)
-- `/api/` → `proxy_pass http://127.0.0.1:18080` (API Gateway)
+- HTTP :80 -> redirect HTTPS
+- HTTPS :443 -> `proxy_pass http://127.0.0.1:4004` (frontend)
+- `/api/` -> `proxy_pass http://127.0.0.1:18080` (API Gateway)
 - SSL cert: `/etc/ssl/certs/smartbmndashboard.crt`
 - Domain: `smartbmndashboard.cdd.go.th`
 
@@ -82,21 +86,25 @@ cd /root/cdd-under-construction && docker compose down
 
 # เริ่ม dashboard ตัวจริง
 cd /root/repo/cdd-dashboard/cdd-dashboard-web && ./deploy.sh
+cd /root/repo/cdd-dashboard/cdd-dashboard-admin && ./deploy.sh
 ```
 
 ## วิธีทดสอบ Local
 
 ```bash
 # เปิดดูไฟล์ HTML ตรง (ไม่ต้องใช้ Docker)
-open index.html
+open index.html   # Web
+open admin.html   # Admin
 
 # หรือรันผ่าน Docker
 docker compose up -d --build
-# เปิด http://localhost:4004
+# เปิด http://localhost:4004 (Web)
+# เปิด http://localhost:4005 (Admin)
 ```
 
 ## หมายเหตุ
 
-- Container name เป็น `cdd-dashboard-web` เหมือน dashboard ตัวจริง — ต้อง stop ตัวเดิมก่อน deploy
+- Container name เปลี่ยนเป็น `cdd-under-construction` — ต้อง stop container `cdd-dashboard-web` และ `cdd-dashboard-admin` ก่อน deploy
 - ใช้ `cdd-network` (external) — ต้องมี network นี้อยู่แล้วบน server
 - Dockerfile ใช้ `nginx:alpine` เท่านั้น (ไม่ต้อง build Node.js) — deploy เร็ว
+- container เดียวรองรับทั้ง Web (port 80->4004) และ Admin (port 81->4005)
