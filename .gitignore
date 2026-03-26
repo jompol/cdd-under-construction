@@ -6,3 +6,6 @@
 *.pem
 *.p12
 *.pfx
+
+# IDE
+.vscode/
